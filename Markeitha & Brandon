@@ -1,0 +1,103 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <numeric>
+#include <fstream>
+using namespace std;
+
+// Transaction Class
+class Transaction {
+public:
+    double amount;
+    string date;
+    string category;
+    string transaction_type; // "Income" or "Expense"
+
+    Transaction(double amt, string dt, string cat, string type)
+        : amount(amt), date(dt), category(cat), transaction_type(type) {}
+
+    string toString() const {
+        return date + ": " + transaction_type + " - " + category + "
+        - $" + to_string(amount);
+    }
+};
+
+// FinanceTracker Class
+class FinanceTracker {
+private:
+    vector<Transaction> transactions;
+
+public:
+    void addTransaction(double amount, const string& date, const string& category, const string& transaction_type) {
+        if (transaction_type != "Income" && transaction_type != "Expense") {
+            throw invalid_argument("Transaction type must be 'Income' or 'Expense'");
+        }
+        transactions.emplace_back(amount, date, category, transaction_type);
+}
+
+
+    void getSummary() const {
+        double income = 0, expenses = 0;
+        for (const auto& t : transactions) {
+            if (t.transaction_type == "Income") {
+                income += t.amount;
+      } else if (t.transaction_type == "Expense") {
+                expenses += t.amount;
+            }
+        }
+        double balance = income - expenses;
+
+        cout << "Summary:\n";
+        cout << "Total Income: $" << income << endl;
+        cout << "Total Expenses: $" << expenses << endl;
+        cout << "Balance: $" << balance << endl;
+    }
+
+    void filterTransactions(const string& by_date = "", const string& by_category = "") const {
+            cout << "Filtered Transactions:\n";
+        for (const auto& t : transactions) {
+            if ((!by_date.empty() && t.date != by_date) || (!by_category.empty() && t.category != by_category)) {
+                continue;
+            }
+            cout << t.toString() << endl;
+        }
+    }
+
+    void exportData(const string& filename = "transactions.txt") const {
+        ofstream file(filename);
+        if (!file) {
+cerr << "Error opening file for writing: " << filename << endl;
+            return;
+        }
+        for (const auto& t : transactions) {
+            file << t.toString() << endl;
+        }
+        cout << "Transactions exported to " << filename << endl;
+    }
+};
+
+// Main Function
+int main() {
+    FinanceTracker tracker;
+
+    try {
+        // Adding transactions
+        tracker.addTransaction(5000, "2024-11-01", "Salary", "Income");
+        tracker.addTransaction(200, "2024-11-02", "Groceries", "Expense");
+        tracker.addTransaction(50, "2024-11-03", "Entertainment", "Expense");
+
+        // Display summary
+        tracker.getSummary();
+
+        // Filter transactions
+        tracker.filterTransactions("2024-11-02", "");
+        tracker.filterTransactions("", "Entertainment");
+
+        // Export data to file
+        tracker.exportData();
+    } catch (const exception& e) {
+        cerr << "Error: " << e.what() << endl;
+    }
+
+    return 0;
+}
